@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trip Expense Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#c2708f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Trip Expenses">
+<style>
+  :root{
+    color-scheme: light;
+    --burgundy-900:#6b3a4c;
+    --burgundy-800:#d9a9bd;
+    --accent-green:#a9d3b6;
+    --burgundy-700:#c2708f;
+    --burgundy-600:#e3a9bf;
+    --burgundy-500:#edc3d2;
+    --burgundy-100:#f7e6ec;
+    --page-bg:#faf6f7;
+    --card-bg:#fffdfe;
+    --card-border:#f0dee5;
+
+    --surface-1:#fbfdfc;
+    --text-primary:#33474b;
+    --text-secondary:#5f7478;
+    --muted:#8a9a9c;
+    --gridline:#dde8e5;
+    --baseline:#c3d3d0;
+
+    --series-1:#7baadb;
+    --series-2:#e6a182;
+    --series-3:#73c8a9;
+    --series-4:#e7c066;
+    --series-5:#e4abc0;
+    --series-6:#64b066;
+    --series-7:#8d87c2;
+    --series-8:#e1908d;
+
+    --status-good:#0ca30c;
+    --status-warning:#fab219;
+    --status-serious:#ec835a;
+    --status-critical:#d03b3b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      color-scheme: dark;
+      --page-bg:#241c20;
+      --card-bg:#312528;
+      --card-border:#4a373e;
+      --burgundy-100:#4a373e;
+      --burgundy-800:#dba8bd;
+      --accent-green:#8fc79e;
+      --burgundy-700:#d98fab;
+      --burgundy-600:#e6b4c8;
+      --surface-1:#291f22;
+      --text-primary:#f1e7ea;
+      --text-secondary:#c9b8bf;
+      --muted:#9c8990;
+      --gridline:#453137;
+      --baseline:#5a424a;
+      --series-1:#568cc8;
+      --series-2:#be6e4c;
+      --series-3:#419b7c;
+      --series-4:#b48b33;
+      --series-5:#bb6987;
+      --series-6:#5ab15c;
+      --series-7:#8f8bcb;
+      --series-8:#c77776;
+      --status-good:#0ca30c;
+      --status-warning:#fab219;
+      --status-serious:#ec835a;
+      --status-critical:#e66767;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:var(--page-bg);
+    color:var(--text-primary);
+    padding-bottom:60px;
+  }
+  header.app-header{
+    background:linear-gradient(135deg, var(--burgundy-800), var(--accent-green), var(--burgundy-600));
+    color:#26383d;
+    padding:28px 24px 22px;
+  }
+  header.app-header h1{
+    margin:0 0 4px;
+    font-size:1.6rem;
+    font-weight:700;
+  }
+  header.app-header .subtitle{
+    opacity:0.85;
+    font-size:0.9rem;
+  }
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:0 20px;
+  }
+  .grid{
+    display:grid;
+    gap:16px;
+  }
+  .cards-row{
+    grid-template-columns:repeat(auto-fit, minmax(200px,1fr));
+    margin-top:-30px;
+  }
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    padding:16px 18px;
+    box-shadow:0 6px 18px rgba(61,15,26,0.08);
+  }
+  .stat-card .label{
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--text-secondary);
+    margin-bottom:6px;
+  }
+  .stat-card .value{
+    font-size:1.5rem;
+    font-weight:700;
+    color:var(--burgundy-700);
+  }
+  .stat-card .sub{
+    font-size:0.8rem;
+    color:var(--muted);
+    margin-top:4px;
+  }
+  .progress-track{
+    margin-top:10px;
+    height:8px;
+    border-radius:6px;
+    background:var(--burgundy-100);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--burgundy-600);
+    border-radius:6px;
+    transition:width 0.3s ease;
+  }
+  .progress-fill.warn{background:var(--status-warning);}
+  .progress-fill.over{background:var(--status-critical);}
+  section{margin-top:22px;}
+  h2{
+    font-size:1.05rem;
+    color:var(--burgundy-700);
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  details.info-panel{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    padding:14px 18px;
+  }
+  details.info-panel summary{
+    cursor:pointer;
+    font-weight:600;
+    color:var(--burgundy-700);
+    list-style:none;
+  }
+  details.info-panel summary::-webkit-details-marker{display:none;}
+  details.info-panel summary::before{
+    content:"ℹ ";
+  }
+  .info-body{
+    margin-top:14px;
+    display:grid;
+    gap:10px;
+    grid-template-columns:repeat(auto-fit, minmax(180px,1fr));
+    font-size:0.88rem;
+  }
+  .info-body .k{color:var(--text-secondary); font-size:0.76rem; text-transform:uppercase; letter-spacing:0.03em;}
+  .info-body .v{font-weight:600; color:var(--text-primary);}
+  .btn{
+    background:var(--burgundy-700);
+    color:#fff;
+    border:none;
+    padding:9px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .btn:hover{background:var(--burgundy-800);}
+  .btn.secondary{
+    background:transparent;
+    color:var(--burgundy-700);
+    border:1px solid var(--burgundy-700);
+  }
+  .btn.secondary:hover{background:var(--burgundy-100);}
+  .btn.small{padding:5px 10px;font-size:0.8rem;}
+  .sync-status{
+    font-size:0.78rem;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .sheet-cta{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:14px;
+    justify-content:space-between;
+  }
+  .sheet-cta p{margin:0; font-size:0.9rem; color:var(--text-secondary); max-width:520px;}
+  .column-guide{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px dashed var(--card-border);
+    font-size:0.82rem;
+    color:var(--text-secondary);
+  }
+  .column-guide code{
+    background:var(--burgundy-100);
+    color:var(--burgundy-800);
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:0.8em;
+  }
+  .charts-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:720px){
+    .charts-row{grid-template-columns:1fr;}
+  }
+  .chart-card svg{width:100%;height:auto;overflow:visible;}
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:10px;
+    font-size:0.8rem;
+  }
+  .legend-item{display:flex;align-items:center;gap:6px;color:var(--text-secondary);}
+  .legend-swatch{width:10px;height:10px;border-radius:3px;display:inline-block;}
+  .tooltip{
+    position:absolute;
+    background:var(--text-primary);
+    color:var(--card-bg);
+    padding:6px 10px;
+    border-radius:6px;
+    font-size:0.78rem;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity 0.12s ease;
+    white-space:nowrap;
+    z-index:10;
+  }
+  .tooltip.show{opacity:1;}
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    overflow:hidden;
+    font-size:0.86rem;
+  }
+  thead th{
+    text-align:left;
+    background:var(--burgundy-100);
+    color:var(--burgundy-800);
+    padding:10px 12px;
+    font-weight:600;
+    font-size:0.76rem;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+  }
+  tbody td{
+    padding:9px 12px;
+    border-top:1px solid var(--card-border);
+    vertical-align:top;
+  }
+  tbody tr:hover{background:var(--burgundy-100);}
+  .cat-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-size:0.78rem;
+    color:var(--text-secondary);
+  }
+  .cat-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .empty-note{
+    color:var(--muted);
+    font-size:0.85rem;
+    padding:16px;
+    text-align:center;
+  }
+  .balances-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px,1fr));
+    gap:12px;
+  }
+  .balance-card .name{font-weight:700;color:var(--burgundy-700);}
+  .balance-card .net.positive{color:var(--status-good);}
+  .balance-card .net.negative{color:var(--status-critical);}
+  .settle-list{margin-top:12px;font-size:0.88rem;}
+  .settle-list li{margin-bottom:6px;}
+  .table-scroll{overflow-x:auto;}
+  footer.export-bar{
+    margin-top:24px;
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="wrap">
+    <h1 id="tripTitleHeading">Trip Expenses</h1>
+    <div class="subtitle">Shared trip expense tracker — everyone keys into one spreadsheet</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="grid cards-row" id="statCards"></div>
+
+  <section>
+    <details class="info-panel" id="infoPanel">
+      <summary>Trip info &amp; data sync</summary>
+      <div class="info-body">
+        <div><div class="k">Trip dates</div><div class="v" id="infoTripDates">—</div></div>
+        <div><div class="k">Total budget</div><div class="v" id="infoBudget">—</div></div>
+        <div><div class="k">Base currency</div><div class="v">SGD</div></div>
+      </div>
+      <div class="sync-status" style="margin-top:14px;">
+        <span id="syncStatusText">Not connected to a sheet yet</span>
+        <button type="button" class="btn secondary small" id="refreshBtn">Refresh now</button>
+        <a class="btn secondary small" id="editSettingsLink" href="#" target="_blank" rel="noopener">Edit trip settings ↗</a>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <div class="card sheet-cta">
+      <div>
+        <h2 style="margin-bottom:6px;">Add or edit an expense</h2>
+        <p>Everyone in the group adds their own expenses directly in the shared spreadsheet — no login needed for viewing, just open and type a new row. This dashboard refreshes automatically every couple of minutes.</p>
+      </div>
+      <a class="btn" id="openSheetLink" href="#" target="_blank" rel="noopener">Open shared spreadsheet ↗</a>
+    </div>
+    <div class="card column-guide">
+      <strong>How to fill in a row:</strong>
+      <code>Date</code>, <code>Description</code>, <code>Category</code>, <code>Amount</code>, <code>Currency</code>, <code>Paid By</code> are required.
+      For splitting: fill <code>Split With</code> with comma-separated names to split evenly (e.g. <code>Sylvia, Jamie</code>) — leave blank if it's just for the payer.
+      For an uneven split, fill <code>Custom Split</code> instead (e.g. <code>Sylvia:60, Jamie:40</code>) — it overrides Split With when present.
+    </div>
+  </section>
+
+  <section>
+    <h2>Spending breakdown</h2>
+    <div class="charts-row">
+      <div class="card chart-card">
+        <strong>By category</strong>
+        <div id="donutChartWrap" style="position:relative;"></div>
+        <div class="legend" id="donutLegend"></div>
+      </div>
+      <div class="card chart-card">
+        <strong>By day</strong>
+        <div id="barChartWrap" style="position:relative;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Balances between travelers</h2>
+    <div class="card">
+      <div class="balances-grid" id="balancesGrid"></div>
+      <ul class="settle-list" id="settleList"></ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Expense log</h2>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Description</th><th>Category</th><th>Amount</th>
+            <th>SGD</th><th>Paid by</th><th>Split</th>
+          </tr>
+        </thead>
+        <tbody id="expenseTableBody"></tbody>
+      </table>
+    </div>
+    <footer class="export-bar">
+      <button type="button" class="btn secondary" id="exportCsvBtn">Export CSV snapshot</button>
+    </footer>
+  </section>
+
+</div>
+
+<div class="tooltip" id="chartTooltip"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Configuration: fill in once the shared Google Sheet is published ----------
+  var CONFIG = {
+    expensesCsvUrl: "", // published-to-web CSV link for the "Expenses" tab
+    settingsCsvUrl: "", // published-to-web CSV link for the "Settings" tab
+    sheetEditUrl: "",   // normal edit link to the sheet (shared "anyone with link can edit")
+    sheetSettingsGid: "" // optional: #gid=... appended to sheetEditUrl to jump to Settings tab
+  };
+
+  var BASE_CURRENCY = "SGD";
+  var ZERO_DECIMAL = { JPY:true, VND:true };
+
+  var DEFAULT_CATEGORY_SLOTS = {
+    "Food":"--series-1", "Transport":"--series-2", "Accommodation":"--series-3",
+    "Shopping":"--series-4", "Activities":"--series-5", "Other":"--series-6"
+  };
+
+  var state = {
+    entries: [],
+    settings: { tripTitle:"Trip Expenses", tripStart:"", tripEnd:"", totalBudget:null },
+    rates: { base:BASE_CURRENCY, rates:{ SGD:1 }, fetchedAt:null }
+  };
+  var lastExpenseObjs = [];
+
+  var CACHE_KEY = "trip-expenses:sheet-cache";
+  var RATES_CACHE_KEY = "trip-expenses:rates-cache";
+
+  function saveCache(){
+    try{
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        entries: state.entries, settings: state.settings, fetchedAt: new Date().toISOString()
+      }));
+    }catch(e){}
+  }
+  function loadCache(){
+    try{
+      var raw = localStorage.getItem(CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+  function saveRatesCache(){
+    try{ localStorage.setItem(RATES_CACHE_KEY, JSON.stringify(state.rates)); }catch(e){}
+  }
+  function loadRatesCache(){
+    try{
+      var raw = localStorage.getItem(RATES_CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  }
+
+  // ---------- CSV parsing (RFC4180-ish) ----------
+  function parseCSV(text){
+    var rows = [], row = [], field = "", inQuotes = false;
+    for(var i=0;i<text.length;i++){
+      var c = text[i];
+      if(inQuotes){
+        if(c === '"'){
+          if(text[i+1] === '"'){ field += '"'; i++; }
+          else { inQuotes = false; }
+        } else { field += c; }
+      } else {
+        if(c === '"'){ inQuotes = true; }
+        else if(c === ','){ row.push(field); field = ""; }
+        else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+        else if(c === '\r'){ /* skip */ }
+        else { field += c; }
+      }
+    }
+    if(field.length || row.length){ row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function csvToObjects(text){
+    var rows = parseCSV(text).filter(function(r){ return r.length > 1 || (r[0]||"").trim() !== ""; });
+    if(rows.length === 0) return [];
+    var headers = rows[0].map(function(h){ return h.trim().toLowerCase().replace(/\s+/g,""); });
+    return rows.slice(1).map(function(r){
+      var obj = {};
+      headers.forEach(function(h, idx){ obj[h] = (r[idx] !== undefined ? r[idx] : "").trim(); });
+      return obj;
+    });
+  }
+
+  // ---------- Exchange rates ----------
+  function formatRateTime(iso){
+    if(!iso) return "not loaded yet";
+    return new Date(iso).toLocaleString();
+  }
+  function rateFor(currency){
+    if(currency === BASE_CURRENCY) return 1;
+    var r = state.rates.rates && state.rates.rates[currency];
+    return r ? r : null;
+  }
+  function toBase(amount, currency){
+    var r = rateFor(currency);
+    return r ? amount / r : amount;
+  }
+  function refreshRates(){
+    fetch("https://open.er-api.com/v6/latest/" + BASE_CURRENCY)
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        if(data && data.result === "success" && data.rates){
+          state.rates = { base:BASE_CURRENCY, rates:data.rates, fetchedAt:new Date().toISOString() };
+          saveRatesCache();
+          rebuildEntriesAndRender();
+        }
+      })
+      .catch(function(){ /* keep using cached/fallback rates */ });
+  }
+
+  // ---------- Formatting ----------
+  function fmt(amount, currency){
+    var decimals = ZERO_DECIMAL[currency] ? 0 : 2;
+    var n = Number(amount || 0);
+    return n.toLocaleString(undefined, { minimumFractionDigits:decimals, maximumFractionDigits:decimals }) + " " + currency;
+  }
+  function fmtBase(amount){ return fmt(amount, BASE_CURRENCY); }
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+  function normKey(name){ return String(name || "").trim().toLowerCase(); }
+
+  // ---------- Categories ----------
+  function categorySlot(name){
+    return DEFAULT_CATEGORY_SLOTS[name] || "--series-7";
+  }
+
+  // ---------- Building entries/settings from sheet data ----------
+  function buildSettings(objs){
+    var o = objs[0] || {};
+    return {
+      tripTitle: o.triptitle || "Trip Expenses",
+      tripStart: o.tripstart || "",
+      tripEnd: o.tripend || "",
+      totalBudget: o.totalbudget ? Number(o.totalbudget) : null
+    };
+  }
+
+  function buildEntries(objs){
+    var out = [];
+    objs.forEach(function(o, idx){
+      if(!o.date || !o.amount) return;
+      var amount = Number(o.amount);
+      if(!amount || amount <= 0) return;
+      var currency = (o.currency || BASE_CURRENCY).toUpperCase();
+      var paidBy = (o.paidby || "").trim();
+      if(!paidBy) return;
+
+      var entry = {
+        id: "row_" + (idx + 2),
+        date: o.date,
+        description: o.description || "",
+        category: (o.category || "Other").trim() || "Other",
+        amount: amount,
+        currency: currency,
+        rateToBase: rateFor(currency) || 1,
+        baseAmount: toBase(amount, currency),
+        paidBy: paidBy
+      };
+
+      var customRaw = (o.customsplit || "").trim();
+      if(customRaw){
+        entry.splitType = "custom";
+        entry.splits = customRaw.split(",").map(function(pair){
+          var parts = pair.split(":");
+          return { travelerId: (parts[0]||"").trim(), amount: Number(parts[1]||0) };
+        }).filter(function(s){ return s.travelerId && s.amount > 0; });
+        if(entry.splits.length === 0) return;
+      } else {
+        entry.splitType = "equal";
+        var withRaw = (o.splitwith || "").trim();
+        entry.splitWith = withRaw ? withRaw.split(",").map(function(n){ return n.trim(); }).filter(Boolean) : [paidBy];
+      }
+      out.push(entry);
+    });
+    return out;
+  }
+
+  function rebuildEntriesAndRender(){
+    state.entries = buildEntries(lastExpenseObjs);
+    renderAll();
+  }
+
+  // ---------- Fetching sheet data ----------
+  function setSyncStatus(msg){
+    document.getElementById("syncStatusText").textContent = msg;
+  }
+
+  function fetchSheetData(){
+    if(!CONFIG.expensesCsvUrl || !CONFIG.settingsCsvUrl){
+      setSyncStatus("Not connected to a sheet yet — this dashboard needs a published Google Sheet CSV link configured.");
+      return;
+    }
+    setSyncStatus("Refreshing…");
+    var bust = "&_=" + Date.now();
+    Promise.all([
+      fetch(CONFIG.expensesCsvUrl + bust).then(function(r){ return r.text(); }),
+      fetch(CONFIG.settingsCsvUrl + bust).then(function(r){ return r.text(); })
+    ]).then(function(results){
+      lastExpenseObjs = csvToObjects(results[0]);
+      state.settings = buildSettings(csvToObjects(results[1]));
+      rebuildEntriesAndRender();
+      saveCache();
+      setSyncStatus("Last synced " + new Date().toLocaleTimeString());
+    }).catch(function(){
+      var cached = loadCache();
+      if(cached){
+        state.entries = cached.entries;
+        state.settings = cached.settings;
+        renderAll();
+        setSyncStatus("Could not refresh — showing cached data from " + new Date(cached.fetchedAt).toLocaleString());
+      } else {
+        setSyncStatus("Could not load the shared sheet. Check your connection and try Refresh.");
+      }
+    });
+  }
+
+  document.getElementById("refreshBtn").addEventListener("click", function(){
+    fetchSheetData();
+    refreshRates();
+  });
+
+  // ---------- Balances ----------
+  function computeBalances(){
+    var balances = {};
+    function ensure(name){
+      var key = normKey(name);
+      if(!balances[key]) balances[key] = { name: name.trim(), paid:0, owed:0 };
+      return balances[key];
+    }
+    state.entries.forEach(function(entry){
+      ensure(entry.paidBy).paid += entry.baseAmount;
+      if(entry.splitType === "equal" && entry.splitWith){
+        var share = entry.baseAmount / entry.splitWith.length;
+        entry.splitWith.forEach(function(name){ ensure(name).owed += share; });
+      } else if(entry.splitType === "custom" && entry.splits){
+        entry.splits.forEach(function(s){
+          ensure(s.travelerId).owed += toBase(s.amount, entry.currency);
+        });
+      }
+    });
+    return Object.keys(balances).map(function(k){
+      var b = balances[k]; b.net = b.paid - b.owed; return b;
+    });
+  }
+
+  function settleUp(balances){
+    var creditors = balances.filter(function(b){ return b.net > 0.01; })
+      .map(function(b){ return { name:b.name, amt:b.net }; }).sort(function(a,b){ return b.amt-a.amt; });
+    var debtors = balances.filter(function(b){ return b.net < -0.01; })
+      .map(function(b){ return { name:b.name, amt:-b.net }; }).sort(function(a,b){ return b.amt-a.amt; });
+    var transactions = [];
+    var i=0, j=0;
+    while(i < creditors.length && j < debtors.length){
+      var amt = Math.min(creditors[i].amt, debtors[j].amt);
+      transactions.push({ from:debtors[j].name, to:creditors[i].name, amount:amt });
+      creditors[i].amt -= amt; debtors[j].amt -= amt;
+      if(creditors[i].amt < 0.01) i++;
+      if(debtors[j].amt < 0.01) j++;
+    }
+    return transactions;
+  }
+
+  function renderBalances(){
+    var balances = computeBalances();
+    var grid = document.getElementById("balancesGrid");
+    grid.innerHTML = "";
+    if(balances.length === 0){
+      grid.innerHTML = '<div class="empty-note">No expenses logged yet.</div>';
+    }
+    balances.forEach(function(b){
+      var card = document.createElement("div");
+      card.className = "card balance-card";
+      var netClass = b.net >= 0 ? "positive" : "negative";
+      var netLabel = b.net >= 0 ? "is owed" : "owes";
+      card.innerHTML =
+        '<div class="name">' + escapeHtml(b.name) + '</div>' +
+        '<div style="font-size:0.8rem;color:var(--text-secondary);margin:4px 0;">Paid ' + fmtBase(b.paid) + ' · Share ' + fmtBase(b.owed) + '</div>' +
+        '<div class="net ' + netClass + '">' + netLabel + ' ' + fmtBase(Math.abs(b.net)) + '</div>';
+      grid.appendChild(card);
+    });
+    var settleListEl = document.getElementById("settleList");
+    var txns = settleUp(balances);
+    settleListEl.innerHTML = "";
+    if(balances.length > 0 && txns.length === 0){
+      settleListEl.innerHTML = '<li class="empty-note">Everyone is settled up.</li>';
+    } else {
+      txns.forEach(function(t){
+        var li = document.createElement("li");
+        li.innerHTML = '<strong>' + escapeHtml(t.from) + '</strong> owes <strong>' + escapeHtml(t.to) + '</strong> ' + fmtBase(t.amount);
+        settleListEl.appendChild(li);
+      });
+    }
+  }
+
+  // ---------- Stat cards ----------
+  function daysBetween(a, b){
+    var msPerDay = 24*60*60*1000;
+    return Math.round((new Date(b) - new Date(a)) / msPerDay) + 1;
+  }
+
+  function renderStatCards(){
+    var totalSpent = state.entries.reduce(function(s,e){ return s + e.baseAmount; }, 0);
+    var budget = state.settings.totalBudget;
+    var wrap = document.getElementById("statCards");
+    wrap.innerHTML = "";
+
+    function card(label, value, sub, extraHtml){
+      var d = document.createElement("div");
+      d.className = "card stat-card";
+      d.innerHTML = '<div class="label">' + label + '</div><div class="value">' + value + '</div>' +
+        (sub ? '<div class="sub">' + sub + '</div>' : '') + (extraHtml || '');
+      wrap.appendChild(d);
+    }
+
+    card("Total spent", fmtBase(totalSpent), state.entries.length + " expense" + (state.entries.length===1?"":"s"));
+
+    if(budget){
+      var remaining = budget - totalSpent;
+      var pct = Math.min(100, (totalSpent / budget) * 100);
+      var barClass = pct >= 100 ? "over" : (pct >= 85 ? "warn" : "");
+      card("Budget remaining", fmtBase(remaining), "of " + fmtBase(budget) + " total budget",
+        '<div class="progress-track"><div class="progress-fill ' + barClass + '" style="width:' + pct + '%"></div></div>');
+    } else {
+      card("Budget", "Not set", "Set it in the Settings tab of the sheet");
+    }
+
+    if(state.settings.tripStart && state.settings.tripEnd){
+      var totalDays = daysBetween(state.settings.tripStart, state.settings.tripEnd);
+      var today = new Date().toISOString().slice(0,10);
+      var elapsed = Math.max(0, Math.min(totalDays, daysBetween(state.settings.tripStart, today < state.settings.tripEnd ? today : state.settings.tripEnd)));
+      if(today < state.settings.tripStart) elapsed = 0;
+      card("Trip days", elapsed + " / " + totalDays, "elapsed of total trip length");
+
+      if(budget){
+        var dailyTarget = budget / totalDays;
+        var dailyAvg = elapsed > 0 ? totalSpent / elapsed : 0;
+        card("Daily average", fmtBase(dailyAvg), "target " + fmtBase(dailyTarget) + "/day" +
+          (dailyAvg > dailyTarget ? " — over pace" : ""));
+      }
+    } else {
+      card("Trip dates", "Not set", "Set them in the Settings tab of the sheet");
+    }
+
+    document.getElementById("infoTripDates").textContent =
+      (state.settings.tripStart && state.settings.tripEnd) ? (state.settings.tripStart + " → " + state.settings.tripEnd) : "Not set";
+    document.getElementById("infoBudget").textContent = budget ? fmtBase(budget) : "Not set";
+  }
+
+  // ---------- Charts ----------
+  function showTooltip(x, y, html){
+    var tt = document.getElementById("chartTooltip");
+    tt.innerHTML = html; tt.style.left = x + "px"; tt.style.top = y + "px"; tt.classList.add("show");
+  }
+  function hideTooltip(){ document.getElementById("chartTooltip").classList.remove("show"); }
+
+  var SVG_NS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs){
+    var el = document.createElementNS(SVG_NS, tag);
+    Object.keys(attrs || {}).forEach(function(k){ el.setAttribute(k, attrs[k]); });
+    return el;
+  }
+
+  function renderDonutChart(){
+    var wrap = document.getElementById("donutChartWrap");
+    var legendWrap = document.getElementById("donutLegend");
+    wrap.innerHTML = ""; legendWrap.innerHTML = "";
+
+    var byCategory = {};
+    state.entries.forEach(function(e){ byCategory[e.category] = (byCategory[e.category] || 0) + e.baseAmount; });
+    var cats = Object.keys(byCategory);
+    if(cats.length === 0){ wrap.innerHTML = '<div class="empty-note">No expenses yet</div>'; return; }
+    var total = cats.reduce(function(s,c){ return s + byCategory[c]; }, 0);
+
+    var size = 220, cx = size/2, cy = size/2, r = 80, inner = 48;
+    var svg = svgEl("svg", { viewBox: "0 0 " + size + " " + size });
+    var angle = -Math.PI/2, gapRad = 0.02;
+
+    cats.forEach(function(cat){
+      var frac = byCategory[cat] / total;
+      var sweep = frac * Math.PI * 2 - gapRad;
+      if(sweep < 0) sweep = 0;
+      var a0 = angle + gapRad/2, a1 = a0 + sweep;
+      var largeArc = sweep > Math.PI ? 1 : 0;
+      var x0 = cx + r*Math.cos(a0), y0 = cy + r*Math.sin(a0);
+      var x1 = cx + r*Math.cos(a1), y1 = cy + r*Math.sin(a1);
+      var xi0 = cx + inner*Math.cos(a1), yi0 = cy + inner*Math.sin(a1);
+      var xi1 = cx + inner*Math.cos(a0), yi1 = cy + inner*Math.sin(a0);
+      var d = "M " + x0 + " " + y0 + " A " + r + " " + r + " 0 " + largeArc + " 1 " + x1 + " " + y1 +
+        " L " + xi0 + " " + yi0 + " A " + inner + " " + inner + " 0 " + largeArc + " 0 " + xi1 + " " + yi1 + " Z";
+      var path = svgEl("path", { d:d, fill:"var(" + categorySlot(cat) + ")", stroke:"var(--surface-1)", "stroke-width":"2" });
+      path.style.cursor = "pointer";
+      path.addEventListener("mousemove", function(ev){
+        showTooltip(ev.pageX + 12, ev.pageY + 8, "<strong>" + escapeHtml(cat) + "</strong><br>" + fmtBase(byCategory[cat]) + " (" + (frac*100).toFixed(1) + "%)");
+      });
+      path.addEventListener("mouseleave", hideTooltip);
+      svg.appendChild(path);
+      angle += frac * Math.PI * 2;
+    });
+
+    var centerText = svgEl("text", { x:cx, y:cy-4, "text-anchor":"middle", "font-size":"11", fill:"var(--text-secondary)" });
+    centerText.textContent = "Total"; svg.appendChild(centerText);
+    var centerVal = svgEl("text", { x:cx, y:cy+12, "text-anchor":"middle", "font-size":"13", "font-weight":"700", fill:"var(--text-primary)" });
+    centerVal.textContent = fmtBase(total); svg.appendChild(centerVal);
+    wrap.appendChild(svg);
+
+    cats.forEach(function(cat){
+      var item = document.createElement("div");
+      item.className = "legend-item";
+      item.innerHTML = '<span class="legend-swatch" style="background:var(' + categorySlot(cat) + ')"></span>' + escapeHtml(cat) + ' — ' + fmtBase(byCategory[cat]);
+      legendWrap.appendChild(item);
+    });
+  }
+
+  function renderBarChart(){
+    var wrap = document.getElementById("barChartWrap");
+    wrap.innerHTML = "";
+    var byDay = {};
+    state.entries.forEach(function(e){ byDay[e.date] = (byDay[e.date] || 0) + e.baseAmount; });
+    var days = Object.keys(byDay).sort();
+    if(days.length === 0){ wrap.innerHTML = '<div class="empty-note">No expenses yet</div>'; return; }
+    var max = Math.max.apply(null, days.map(function(d){ return byDay[d]; }));
+
+    var width = Math.max(280, days.length * 34 + 40), height = 220;
+    var padBottom = 34, padTop = 10, padLeft = 8, chartH = height - padBottom - padTop;
+    var barW = Math.min(26, (width - padLeft*2) / days.length - 8);
+    var svg = svgEl("svg", { viewBox: "0 0 " + width + " " + height, width: "100%" });
+
+    [0.25,0.5,0.75,1].forEach(function(f){
+      var y = padTop + chartH * (1-f);
+      svg.appendChild(svgEl("line", { x1:padLeft, x2:width-padLeft, y1:y, y2:y, stroke:"var(--gridline)", "stroke-width":"1" }));
+    });
+    svg.appendChild(svgEl("line", { x1:padLeft, x2:width-padLeft, y1:padTop+chartH, y2:padTop+chartH, stroke:"var(--baseline)", "stroke-width":"1" }));
+
+    days.forEach(function(day, idx){
+      var val = byDay[day];
+      var h = max > 0 ? (val / max) * chartH : 0;
+      var x = padLeft + idx * ((width - padLeft*2) / days.length) + 4;
+      var y = padTop + chartH - h;
+      var rect = svgEl("rect", { x:x, y:y, width:barW, height:Math.max(h,2), rx:4, ry:4, fill:"var(--burgundy-600)" });
+      rect.style.cursor = "pointer";
+      rect.addEventListener("mousemove", function(ev){ showTooltip(ev.pageX + 12, ev.pageY + 8, "<strong>" + day + "</strong><br>" + fmtBase(val)); });
+      rect.addEventListener("mouseleave", hideTooltip);
+      svg.appendChild(rect);
+      var label = svgEl("text", { x:x+barW/2, y:height-14, "text-anchor":"middle", "font-size":"9", fill:"var(--muted)" });
+      label.textContent = day.slice(5); svg.appendChild(label);
+    });
+    wrap.appendChild(svg);
+  }
+
+  // ---------- Table ----------
+  function splitSummary(entry){
+    if(entry.splitType === "equal" && entry.splitWith){
+      return "Equal / " + entry.splitWith.join(", ");
+    } else if(entry.splits){
+      return "Custom / " + entry.splits.map(function(s){ return s.travelerId + " " + fmt(s.amount, entry.currency); }).join(", ");
+    }
+    return "";
+  }
+
+  function renderTable(){
+    var tbody = document.getElementById("expenseTableBody");
+    tbody.innerHTML = "";
+    var sorted = state.entries.slice().sort(function(a,b){ return a.date < b.date ? 1 : (a.date > b.date ? -1 : 0); });
+    if(sorted.length === 0){
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-note">No expenses logged yet. Add one in the shared spreadsheet above.</td></tr>';
+      return;
+    }
+    sorted.forEach(function(entry){
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td>" + entry.date + "</td>" +
+        "<td>" + escapeHtml(entry.description) + "</td>" +
+        "<td><span class='cat-tag'><span class='cat-dot' style='background:var(" + categorySlot(entry.category) + ")'></span>" + escapeHtml(entry.category) + "</span></td>" +
+        "<td>" + fmt(entry.amount, entry.currency) + "</td>" +
+        "<td>" + fmtBase(entry.baseAmount) + "</td>" +
+        "<td>" + escapeHtml(entry.paidBy) + "</td>" +
+        "<td style='max-width:260px;font-size:0.78rem;color:var(--text-secondary);'>" + escapeHtml(splitSummary(entry)) + "</td>";
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- CSV export (snapshot backup) ----------
+  document.getElementById("exportCsvBtn").addEventListener("click", function(){
+    var header = ["Date","Description","Category","Amount","Currency","Amount (SGD)","Paid By","Split"];
+    var rows = state.entries.map(function(e){
+      return [e.date, e.description, e.category, e.amount, e.currency, e.baseAmount.toFixed(2), e.paidBy, splitSummary(e)]
+        .map(function(v){ return '"' + String(v).replace(/"/g, '""') + '"'; }).join(",");
+    });
+    var csv = header.join(",") + "\n" + rows.join("\n");
+    var blob = new Blob([csv], { type:"text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = "trip-expenses-snapshot.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // ---------- Render orchestration ----------
+  function renderAll(){
+    document.getElementById("tripTitleHeading").textContent = state.settings.tripTitle || "Trip Expenses";
+    renderStatCards();
+    renderBalances();
+    renderDonutChart();
+    renderBarChart();
+    renderTable();
+  }
+
+  function init(){
+    document.getElementById("openSheetLink").href = CONFIG.sheetEditUrl || "#";
+    document.getElementById("editSettingsLink").href = CONFIG.sheetEditUrl ?
+      (CONFIG.sheetEditUrl + (CONFIG.sheetSettingsGid ? "#gid=" + CONFIG.sheetSettingsGid : "")) : "#";
+
+    var cachedRates = loadRatesCache();
+    if(cachedRates) state.rates = cachedRates;
+
+    var cached = loadCache();
+    if(cached){ state.entries = cached.entries; state.settings = cached.settings; }
+    renderAll();
+
+    fetchSheetData();
+    refreshRates();
+
+    setInterval(function(){ fetchSheetData(); }, 120000);
+  }
+
+  init();
+})();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", function(){
+    // file:// pages can't register service workers (needs http/https); this
+    // silently no-ops there and just works once the app is hosted or run via a local server.
+    navigator.serviceWorker.register("sw.js").catch(function(){ /* not supported in this context, ignore */ });
+  });
+}
+</script>
+</body>
+</html>
