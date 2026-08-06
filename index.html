@@ -175,17 +175,57 @@
   }
   details.info-panel summary::-webkit-details-marker{display:none;}
   details.info-panel summary::before{
-    content:"ℹ ";
+    content:"⚙ ";
   }
-  .info-body{
+  .settings-body{
     margin-top:14px;
     display:grid;
-    gap:10px;
+    gap:14px;
     grid-template-columns:repeat(auto-fit, minmax(180px,1fr));
-    font-size:0.88rem;
   }
-  .info-body .k{color:var(--text-secondary); font-size:0.76rem; text-transform:uppercase; letter-spacing:0.03em;}
-  .info-body .v{font-weight:600; color:var(--text-primary);}
+  label{
+    font-size:0.78rem;
+    color:var(--text-secondary);
+    display:block;
+    margin-bottom:4px;
+  }
+  input, select, button{
+    font-family:inherit;
+    font-size:0.92rem;
+  }
+  input[type=text], input[type=number], input[type=date], select{
+    width:100%;
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid var(--card-border);
+    background:var(--surface-1);
+    color:var(--text-primary);
+  }
+  .traveler-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:6px;
+  }
+  .chip{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:var(--burgundy-100);
+    color:var(--burgundy-800);
+    padding:5px 10px;
+    border-radius:999px;
+    font-size:0.85rem;
+  }
+  .chip button{
+    background:none;
+    border:none;
+    color:var(--burgundy-700);
+    cursor:pointer;
+    font-weight:700;
+    padding:0;
+    line-height:1;
+  }
   .btn{
     background:var(--burgundy-700);
     color:#fff;
@@ -214,28 +254,52 @@
     align-items:center;
     gap:8px;
     flex-wrap:wrap;
+    margin-top:10px;
   }
-  .sheet-cta{
+  form.expense-form{
+    background:var(--card-bg);
+    border:1px solid var(--card-border);
+    border-radius:14px;
+    padding:18px;
+    display:grid;
+    gap:12px;
+    grid-template-columns:repeat(auto-fit, minmax(160px,1fr));
+    align-items:end;
+  }
+  form.expense-form .full{grid-column:1/-1;}
+  .split-box{
+    background:var(--surface-1);
+    border:1px dashed var(--card-border);
+    border-radius:10px;
+    padding:10px;
+  }
+  .split-row{
     display:flex;
-    flex-wrap:wrap;
     align-items:center;
-    gap:14px;
-    justify-content:space-between;
+    gap:8px;
+    margin:4px 0;
+    font-size:0.85rem;
   }
-  .sheet-cta p{margin:0; font-size:0.9rem; color:var(--text-secondary); max-width:520px;}
-  .column-guide{
-    margin-top:14px;
-    padding-top:14px;
-    border-top:1px dashed var(--card-border);
-    font-size:0.82rem;
+  .split-row input[type=number]{width:110px;}
+  .split-type-toggle{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .split-type-toggle button{
+    flex:1;
+    padding:6px;
+    border-radius:6px;
+    border:1px solid var(--card-border);
+    background:var(--surface-1);
     color:var(--text-secondary);
+    cursor:pointer;
+    font-size:0.8rem;
   }
-  .column-guide code{
-    background:var(--burgundy-100);
-    color:var(--burgundy-800);
-    padding:1px 5px;
-    border-radius:4px;
-    font-size:0.8em;
+  .split-type-toggle button.active{
+    background:var(--burgundy-700);
+    color:#fff;
+    border-color:var(--burgundy-700);
   }
   .charts-row{
     display:grid;
@@ -302,6 +366,14 @@
     color:var(--text-secondary);
   }
   .cat-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .row-actions button{
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--burgundy-700);
+    font-size:0.8rem;
+    margin-right:8px;
+  }
   .empty-note{
     color:var(--muted);
     font-size:0.85rem;
@@ -332,7 +404,7 @@
 <header class="app-header">
   <div class="wrap">
     <h1 id="tripTitleHeading">Trip Expenses</h1>
-    <div class="subtitle">Shared trip expense tracker — everyone keys into one spreadsheet</div>
+    <div class="subtitle">Shared trip expense tracker — everyone updates it from this page, no spreadsheet typing needed</div>
   </div>
 </header>
 
@@ -342,34 +414,82 @@
 
   <section>
     <details class="info-panel" id="infoPanel">
-      <summary>Trip info &amp; data sync</summary>
-      <div class="info-body">
-        <div><div class="k">Trip dates</div><div class="v" id="infoTripDates">—</div></div>
-        <div><div class="k">Total budget</div><div class="v" id="infoBudget">—</div></div>
-        <div><div class="k">Base currency</div><div class="v">SGD</div></div>
+      <summary>Trip settings &amp; travelers</summary>
+      <div class="settings-body">
+        <div>
+          <label for="editTripTitle">Trip title</label>
+          <input type="text" id="editTripTitle">
+        </div>
+        <div>
+          <label for="editTripStart">Trip start date</label>
+          <input type="date" id="editTripStart">
+        </div>
+        <div>
+          <label for="editTripEnd">Trip end date</label>
+          <input type="date" id="editTripEnd">
+        </div>
+        <div>
+          <label for="editTotalBudget">Total budget (SGD)</label>
+          <input type="number" id="editTotalBudget" min="0" step="0.01" placeholder="e.g. 3000">
+        </div>
+        <div class="full">
+          <label>Travelers</label>
+          <div class="traveler-list" id="travelerList"></div>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <input type="text" id="newTravelerName" placeholder="Add traveler name" style="max-width:220px;">
+            <button type="button" class="btn small" id="addTravelerBtn">Add</button>
+          </div>
+        </div>
       </div>
-      <div class="sync-status" style="margin-top:14px;">
-        <span id="syncStatusText">Not connected to a sheet yet</span>
+      <div class="sync-status">
+        <button type="button" class="btn small" id="saveSettingsBtn">Save trip settings</button>
+        <span id="syncStatusText">Not connected yet</span>
         <button type="button" class="btn secondary small" id="refreshBtn">Refresh now</button>
-        <a class="btn secondary small" id="editSettingsLink" href="#" target="_blank" rel="noopener">Edit trip settings ↗</a>
+        <a class="btn secondary small" id="openSheetLink" href="#" target="_blank" rel="noopener">View raw sheet (backup) ↗</a>
       </div>
     </details>
   </section>
 
   <section>
-    <div class="card sheet-cta">
+    <h2 id="expenseFormHeading">Add expense</h2>
+    <form class="expense-form" id="expenseForm">
       <div>
-        <h2 style="margin-bottom:6px;">Add or edit an expense</h2>
-        <p>Everyone in the group adds their own expenses directly in the shared spreadsheet — no login needed for viewing, just open and type a new row. This dashboard refreshes automatically every couple of minutes.</p>
+        <label for="expDate">Date</label>
+        <input type="date" id="expDate" required>
       </div>
-      <a class="btn" id="openSheetLink" href="#" target="_blank" rel="noopener">Open shared spreadsheet ↗</a>
-    </div>
-    <div class="card column-guide">
-      <strong>How to fill in a row:</strong>
-      <code>Date</code>, <code>Description</code>, <code>Category</code>, <code>Amount</code>, <code>Currency</code>, <code>Paid By</code> are required.
-      For splitting: fill <code>Split With</code> with comma-separated names to split evenly (e.g. <code>Sylvia, Jamie</code>) — leave blank if it's just for the payer.
-      For an uneven split, fill <code>Custom Split</code> instead (e.g. <code>Sylvia:60, Jamie:40</code>) — it overrides Split With when present.
-    </div>
+      <div class="full" style="grid-column:span 2;">
+        <label for="expDesc">Description</label>
+        <input type="text" id="expDesc" placeholder="e.g. Takoyaki dinner" required>
+      </div>
+      <div>
+        <label for="expCategory">Category</label>
+        <select id="expCategory"></select>
+      </div>
+      <div>
+        <label for="expAmount">Amount</label>
+        <input type="number" id="expAmount" min="0" step="0.01" required>
+      </div>
+      <div>
+        <label for="expCurrency">Currency</label>
+        <select id="expCurrency"></select>
+      </div>
+      <div>
+        <label for="expPaidBy">Paid by</label>
+        <select id="expPaidBy"></select>
+      </div>
+      <div class="full split-box">
+        <div class="split-type-toggle">
+          <button type="button" id="splitEqualBtn" class="active">Equal split</button>
+          <button type="button" id="splitCustomBtn">Custom split</button>
+        </div>
+        <div id="splitDetail"></div>
+      </div>
+      <div class="full" style="display:flex; gap:10px; align-items:center;">
+        <button type="submit" class="btn" id="expenseSubmitBtn">Add expense</button>
+        <button type="button" class="btn secondary" id="cancelEditBtn" style="display:none;">Cancel edit</button>
+        <span class="sync-status" id="writeStatusText" style="margin-top:0;"></span>
+      </div>
+    </form>
   </section>
 
   <section>
@@ -402,7 +522,7 @@
         <thead>
           <tr>
             <th>Date</th><th>Description</th><th>Category</th><th>Amount</th>
-            <th>SGD</th><th>Paid by</th><th>Split</th>
+            <th>SGD</th><th>Paid by</th><th>Split</th><th></th>
           </tr>
         </thead>
         <tbody id="expenseTableBody"></tbody>
@@ -421,21 +541,26 @@
 (function(){
   "use strict";
 
-  // ---------- Configuration: fill in once the shared Google Sheet is published ----------
+  // ---------- Configuration ----------
   var CONFIG = {
-    expensesCsvUrl: "https://docs.google.com/spreadsheets/d/1s8xieDqLL7qrAwWT36V5x2b3iJ9ETkYFDe0xuI9jbv8/export?format=csv&gid=0", // published-to-web CSV link for the "Expenses" tab
-    settingsCsvUrl: "https://docs.google.com/spreadsheets/d/1s8xieDqLL7qrAwWT36V5x2b3iJ9ETkYFDe0xuI9jbv8/export?format=csv&gid=958691995", // published-to-web CSV link for the "Settings" tab
-    sheetEditUrl: "https://docs.google.com/spreadsheets/d/1s8xieDqLL7qrAwWT36V5x2b3iJ9ETkYFDe0xuI9jbv8/edit",   // normal edit link to the sheet (shared "anyone with link can edit")
-    sheetSettingsGid: "958691995" // optional: #gid=... appended to sheetEditUrl to jump to Settings tab
+    expensesCsvUrl: "https://docs.google.com/spreadsheets/d/1s8xieDqLL7qrAwWT36V5x2b3iJ9ETkYFDe0xuI9jbv8/export?format=csv&gid=0",
+    settingsCsvUrl: "https://docs.google.com/spreadsheets/d/1s8xieDqLL7qrAwWT36V5x2b3iJ9ETkYFDe0xuI9jbv8/export?format=csv&gid=958691995",
+    sheetEditUrl: "https://docs.google.com/spreadsheets/d/1s8xieDqLL7qrAwWT36V5x2b3iJ9ETkYFDe0xuI9jbv8/edit",
+    appsScriptUrl: "https://script.google.com/macros/s/AKfycbxvJN5z4_MBYCrrOPtkQtBHjGfB3iSuSztQayJwZYLXP4STl7_Id-BVhlQVc7pyWGgQ0w/exec"
   };
 
   var BASE_CURRENCY = "SGD";
   var ZERO_DECIMAL = { JPY:true, VND:true };
+  var CURRENCIES = ["SGD","JPY","TWD","MYR","THB","VND","CNY","USD","GBP","EUR"];
 
-  var DEFAULT_CATEGORY_SLOTS = {
-    "Food":"--series-1", "Transport":"--series-2", "Accommodation":"--series-3",
-    "Shopping":"--series-4", "Activities":"--series-5", "Other":"--series-6"
-  };
+  var DEFAULT_CATEGORIES = [
+    { name:"Food", slot:"--series-1", defaultSplit:"equal" },
+    { name:"Transport", slot:"--series-2", defaultSplit:"equal" },
+    { name:"Accommodation", slot:"--series-3", defaultSplit:"equal" },
+    { name:"Shopping", slot:"--series-4", defaultSplit:"custom" },
+    { name:"Activities", slot:"--series-5", defaultSplit:"equal" },
+    { name:"Other", slot:"--series-6", defaultSplit:"equal" }
+  ];
 
   var state = {
     entries: [],
@@ -443,9 +568,14 @@
     rates: { base:BASE_CURRENCY, rates:{ SGD:1 }, fetchedAt:null }
   };
   var lastExpenseObjs = [];
+  var localTravelers = []; // [{id,name}] local convenience list, persisted per-device
+  var currentSplitType = "equal";
+  var editingEntryId = null; // numeric sheet row, or null when adding
+  var editingPrefill = null;
 
   var CACHE_KEY = "trip-expenses:sheet-cache";
   var RATES_CACHE_KEY = "trip-expenses:rates-cache";
+  var LOCAL_TRAVELERS_KEY = "trip-expenses:local-travelers";
 
   function saveCache(){
     try{
@@ -468,6 +598,15 @@
       var raw = localStorage.getItem(RATES_CACHE_KEY);
       return raw ? JSON.parse(raw) : null;
     }catch(e){ return null; }
+  }
+  function saveLocalTravelers(){
+    try{ localStorage.setItem(LOCAL_TRAVELERS_KEY, JSON.stringify(localTravelers)); }catch(e){}
+  }
+  function loadLocalTravelers(){
+    try{
+      var raw = localStorage.getItem(LOCAL_TRAVELERS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){ return []; }
   }
 
   // ---------- CSV parsing (RFC4180-ish) ----------
@@ -492,8 +631,10 @@
     return rows;
   }
 
+  // NOTE: deliberately does NOT drop blank rows — entry ids are "row_" + (index+2)
+  // and must stay aligned with real sheet row numbers even after a row is cleared.
   function csvToObjects(text){
-    var rows = parseCSV(text).filter(function(r){ return r.length > 1 || (r[0]||"").trim() !== ""; });
+    var rows = parseCSV(text);
     if(rows.length === 0) return [];
     var headers = rows[0].map(function(h){ return h.trim().toLowerCase().replace(/\s+/g,""); });
     return rows.slice(1).map(function(r){
@@ -504,10 +645,6 @@
   }
 
   // ---------- Exchange rates ----------
-  function formatRateTime(iso){
-    if(!iso) return "not loaded yet";
-    return new Date(iso).toLocaleString();
-  }
   function rateFor(currency){
     if(currency === BASE_CURRENCY) return 1;
     var r = state.rates.rates && state.rates.rates[currency];
@@ -543,11 +680,86 @@
     });
   }
   function normKey(name){ return String(name || "").trim().toLowerCase(); }
+  function uid(prefix){ return prefix + "_" + Date.now().toString(36) + "_" + Math.floor(Math.random()*1000); }
 
   // ---------- Categories ----------
   function categorySlot(name){
-    return DEFAULT_CATEGORY_SLOTS[name] || "--series-7";
+    var found = DEFAULT_CATEGORIES.find(function(c){ return c.name === name; });
+    return found ? found.slot : "--series-7";
   }
+  function defaultSplitForCategory(name){
+    var found = DEFAULT_CATEGORIES.find(function(c){ return c.name === name; });
+    return found ? found.defaultSplit : "equal";
+  }
+  function allCategoryNames(){
+    var names = DEFAULT_CATEGORIES.map(function(c){ return c.name; });
+    state.entries.forEach(function(e){
+      if(names.indexOf(e.category) === -1) names.push(e.category);
+    });
+    return names;
+  }
+
+  // ---------- Known travelers (local list ∪ names seen in sheet data) ----------
+  function knownTravelerNames(){
+    var seen = {}; // normKey -> display name
+    localTravelers.forEach(function(t){
+      if(t.name && t.name.trim()) seen[normKey(t.name)] = t.name.trim();
+    });
+    state.entries.forEach(function(e){
+      if(e.paidBy && !seen[normKey(e.paidBy)]) seen[normKey(e.paidBy)] = e.paidBy;
+      if(e.splitType === "equal" && e.splitWith){
+        e.splitWith.forEach(function(n){ if(n && !seen[normKey(n)]) seen[normKey(n)] = n; });
+      }
+      if(e.splitType === "custom" && e.splits){
+        e.splits.forEach(function(s){ if(s.travelerId && !seen[normKey(s.travelerId)]) seen[normKey(s.travelerId)] = s.travelerId; });
+      }
+    });
+    return Object.keys(seen).map(function(k){ return seen[k]; }).sort(function(a,b){ return a.localeCompare(b); });
+  }
+
+  function renderTravelerList(){
+    var wrap = document.getElementById("travelerList");
+    wrap.innerHTML = "";
+    localTravelers.forEach(function(t){
+      var chip = document.createElement("span");
+      chip.className = "chip";
+      var span = document.createElement("span");
+      span.textContent = t.name;
+      chip.appendChild(span);
+      var removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "×";
+      removeBtn.title = "Remove from quick-entry list";
+      removeBtn.addEventListener("click", function(){
+        localTravelers = localTravelers.filter(function(x){ return x.id !== t.id; });
+        saveLocalTravelers();
+        renderTravelerList();
+        refreshPaidBySelect();
+        renderSplitDetail();
+      });
+      chip.appendChild(removeBtn);
+      wrap.appendChild(chip);
+    });
+    if(localTravelers.length === 0){
+      var hint = document.createElement("span");
+      hint.style.fontSize = "0.8rem";
+      hint.style.color = "var(--muted)";
+      hint.textContent = "No quick-entry names yet — add one below, or they'll appear automatically once someone logs an expense.";
+      wrap.appendChild(hint);
+    }
+  }
+
+  document.getElementById("addTravelerBtn").addEventListener("click", function(){
+    var input = document.getElementById("newTravelerName");
+    var name = input.value.trim();
+    if(!name) return;
+    localTravelers.push({ id: uid("t"), name: name });
+    saveLocalTravelers();
+    input.value = "";
+    renderTravelerList();
+    refreshPaidBySelect();
+    renderSplitDetail();
+  });
 
   // ---------- Building entries/settings from sheet data ----------
   function buildSettings(objs){
@@ -605,16 +817,17 @@
     renderAll();
   }
 
-  // ---------- Fetching sheet data ----------
+  // ---------- Fetching sheet data (reads) ----------
   function setSyncStatus(msg){
     document.getElementById("syncStatusText").textContent = msg;
   }
+  function setWriteStatus(msg, isError){
+    var el = document.getElementById("writeStatusText");
+    el.textContent = msg;
+    el.style.color = isError ? "var(--status-critical)" : "var(--muted)";
+  }
 
   function fetchSheetData(){
-    if(!CONFIG.expensesCsvUrl || !CONFIG.settingsCsvUrl){
-      setSyncStatus("Not connected to a sheet yet — this dashboard needs a published Google Sheet CSV link configured.");
-      return;
-    }
     setSyncStatus("Refreshing…");
     var bust = "&_=" + Date.now();
     Promise.all([
@@ -642,6 +855,50 @@
   document.getElementById("refreshBtn").addEventListener("click", function(){
     fetchSheetData();
     refreshRates();
+  });
+
+  // ---------- Writing to the sheet (via Apps Script) ----------
+  function postToSheet(payload){
+    return fetch(CONFIG.appsScriptUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids a CORS preflight
+      body: JSON.stringify(payload)
+    }).then(function(r){ return r.text(); }).then(function(t){
+      var parsed;
+      try{ parsed = JSON.parse(t); }catch(e){ throw new Error("Unexpected response"); }
+      if(parsed.status !== "ok") throw new Error(parsed.message || "Write failed");
+      return parsed;
+    });
+  }
+
+  // ---------- Trip settings edit ----------
+  function fillSettingsForm(){
+    document.getElementById("editTripTitle").value = state.settings.tripTitle || "";
+    document.getElementById("editTripStart").value = state.settings.tripStart || "";
+    document.getElementById("editTripEnd").value = state.settings.tripEnd || "";
+    document.getElementById("editTotalBudget").value = state.settings.totalBudget != null ? state.settings.totalBudget : "";
+  }
+
+  document.getElementById("saveSettingsBtn").addEventListener("click", function(){
+    var payload = {
+      action: "updateSettings",
+      tripTitle: document.getElementById("editTripTitle").value.trim() || "Trip Expenses",
+      tripStart: document.getElementById("editTripStart").value,
+      tripEnd: document.getElementById("editTripEnd").value,
+      totalBudget: document.getElementById("editTotalBudget").value ? Number(document.getElementById("editTotalBudget").value) : ""
+    };
+    setSyncStatus("Saving trip settings…");
+    postToSheet(payload).then(function(){
+      state.settings = {
+        tripTitle: payload.tripTitle, tripStart: payload.tripStart,
+        tripEnd: payload.tripEnd, totalBudget: payload.totalBudget || null
+      };
+      renderAll();
+      setSyncStatus("Trip settings saved " + new Date().toLocaleTimeString());
+      setTimeout(fetchSheetData, 1500);
+    }).catch(function(err){
+      setSyncStatus("Could not save trip settings: " + err.message);
+    });
   });
 
   // ---------- Balances ----------
@@ -746,7 +1003,7 @@
       card("Budget remaining", fmtBase(remaining), "of " + fmtBase(budget) + " total budget",
         '<div class="progress-track"><div class="progress-fill ' + barClass + '" style="width:' + pct + '%"></div></div>');
     } else {
-      card("Budget", "Not set", "Set it in the Settings tab of the sheet");
+      card("Budget", "Not set", "Set it in Trip settings above");
     }
 
     if(state.settings.tripStart && state.settings.tripEnd){
@@ -763,12 +1020,8 @@
           (dailyAvg > dailyTarget ? " — over pace" : ""));
       }
     } else {
-      card("Trip dates", "Not set", "Set them in the Settings tab of the sheet");
+      card("Trip dates", "Not set", "Set them in Trip settings above");
     }
-
-    document.getElementById("infoTripDates").textContent =
-      (state.settings.tripStart && state.settings.tripEnd) ? (state.settings.tripStart + " → " + state.settings.tripEnd) : "Not set";
-    document.getElementById("infoBudget").textContent = budget ? fmtBase(budget) : "Not set";
   }
 
   // ---------- Charts ----------
@@ -872,6 +1125,273 @@
     wrap.appendChild(svg);
   }
 
+  // ---------- Add-expense form: selects & split UI ----------
+  function populateSelect(select, options, selected){
+    select.innerHTML = "";
+    options.forEach(function(o){
+      var opt = document.createElement("option");
+      opt.value = o; opt.textContent = o;
+      select.appendChild(opt);
+    });
+    if(selected) select.value = selected;
+  }
+
+  function refreshCategorySelect(){
+    var sel = document.getElementById("expCategory");
+    var prev = sel.value;
+    populateSelect(sel, allCategoryNames());
+    if(prev) sel.value = prev;
+  }
+  document.getElementById("expCategory").addEventListener("change", function(){
+    currentSplitType = defaultSplitForCategory(this.value);
+    updateSplitToggleUI();
+    editingPrefill = null;
+    renderSplitDetail();
+  });
+
+  function refreshCurrencySelect(){
+    var sel = document.getElementById("expCurrency");
+    if(!sel.value){ populateSelect(sel, CURRENCIES, "JPY"); }
+    else { var prev = sel.value; populateSelect(sel, CURRENCIES, prev); }
+  }
+
+  function refreshPaidBySelect(){
+    var sel = document.getElementById("expPaidBy");
+    var prev = sel.value;
+    var names = knownTravelerNames();
+    populateSelect(sel, names, names.indexOf(prev) !== -1 ? prev : undefined);
+  }
+
+  function updateSplitToggleUI(){
+    document.getElementById("splitEqualBtn").classList.toggle("active", currentSplitType === "equal");
+    document.getElementById("splitCustomBtn").classList.toggle("active", currentSplitType === "custom");
+  }
+  document.getElementById("splitEqualBtn").addEventListener("click", function(){
+    currentSplitType = "equal"; updateSplitToggleUI(); renderSplitDetail();
+  });
+  document.getElementById("splitCustomBtn").addEventListener("click", function(){
+    currentSplitType = "custom"; updateSplitToggleUI(); renderSplitDetail();
+  });
+
+  function renderSplitDetail(){
+    var wrap = document.getElementById("splitDetail");
+    wrap.innerHTML = "";
+    var names = knownTravelerNames();
+    var prefillSplitWith = editingPrefill && editingPrefill.splitWith;
+    var prefillSplits = editingPrefill && editingPrefill.splits;
+
+    if(names.length === 0){
+      wrap.innerHTML = '<div class="empty-note">Add at least one traveler above to set up splits.</div>';
+      return;
+    }
+
+    if(currentSplitType === "equal"){
+      names.forEach(function(name){
+        var row = document.createElement("label");
+        row.className = "split-row";
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = prefillSplitWith ? prefillSplitWith.indexOf(name) !== -1 : true;
+        cb.dataset.name = name;
+        cb.className = "split-with-cb";
+        row.appendChild(cb);
+        var span = document.createElement("span");
+        span.textContent = name;
+        row.appendChild(span);
+        wrap.appendChild(row);
+      });
+    } else {
+      var includeLabel = document.createElement("div");
+      includeLabel.style.fontSize = "0.78rem";
+      includeLabel.style.marginBottom = "6px";
+      includeLabel.style.color = "var(--text-secondary)";
+      includeLabel.textContent = "Choose who to include, then enter each person's amount:";
+      wrap.appendChild(includeLabel);
+
+      var remainingLabel = document.createElement("div");
+      remainingLabel.style.fontSize = "0.78rem";
+      remainingLabel.style.marginBottom = "6px";
+      remainingLabel.id = "customSplitRemaining";
+      wrap.appendChild(remainingLabel);
+
+      names.forEach(function(name){
+        var existingSplit = prefillSplits && prefillSplits.find(function(s){ return s.travelerId === name; });
+        var included = prefillSplits ? !!existingSplit : true;
+
+        var row = document.createElement("div");
+        row.className = "split-row";
+
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = included;
+        cb.className = "split-custom-include-cb";
+        cb.dataset.name = name;
+        row.appendChild(cb);
+
+        var span = document.createElement("span");
+        span.style.width = "90px";
+        span.style.display = "inline-block";
+        span.textContent = name;
+        row.appendChild(span);
+
+        var inp = document.createElement("input");
+        inp.type = "number";
+        inp.step = "0.01";
+        inp.min = "0";
+        inp.className = "split-custom-amt";
+        inp.dataset.name = name;
+        inp.placeholder = "0.00";
+        inp.disabled = !included;
+        if(existingSplit) inp.value = existingSplit.amount;
+        inp.addEventListener("input", updateCustomSplitRemaining);
+        row.appendChild(inp);
+
+        cb.addEventListener("change", function(){
+          inp.disabled = !cb.checked;
+          if(!cb.checked) inp.value = "";
+          updateCustomSplitRemaining();
+        });
+
+        wrap.appendChild(row);
+      });
+      updateCustomSplitRemaining();
+    }
+  }
+
+  function updateCustomSplitRemaining(){
+    var amount = Number(document.getElementById("expAmount").value || 0);
+    var inputs = Array.prototype.slice.call(document.querySelectorAll(".split-custom-amt"))
+      .filter(function(i){ return !i.disabled; });
+    var sum = 0;
+    inputs.forEach(function(i){ sum += Number(i.value || 0); });
+    var remaining = amount - sum;
+    var el = document.getElementById("customSplitRemaining");
+    if(el){
+      el.textContent = "Remaining to allocate: " + remaining.toFixed(2) + " (total " + amount.toFixed(2) + ")";
+      el.style.color = Math.abs(remaining) > 0.01 ? "var(--status-critical)" : "var(--status-good)";
+    }
+  }
+  document.getElementById("expAmount").addEventListener("input", function(){
+    if(currentSplitType === "custom") updateCustomSplitRemaining();
+  });
+
+  // ---------- Add / edit expense ----------
+  function beginEditEntry(id){
+    var entry = state.entries.find(function(e){ return e.id === id; });
+    if(!entry) return;
+
+    editingEntryId = id;
+    editingPrefill = { splitWith: entry.splitWith, splits: entry.splits };
+
+    document.getElementById("expDate").value = entry.date;
+    document.getElementById("expDesc").value = entry.description;
+    refreshCategorySelect();
+    document.getElementById("expCategory").value = entry.category;
+    document.getElementById("expAmount").value = entry.amount;
+    refreshCurrencySelect();
+    document.getElementById("expCurrency").value = entry.currency;
+    refreshPaidBySelect();
+    document.getElementById("expPaidBy").value = entry.paidBy;
+
+    currentSplitType = entry.splitType;
+    updateSplitToggleUI();
+    renderSplitDetail();
+
+    document.getElementById("expenseFormHeading").textContent = "Edit expense";
+    document.getElementById("expenseSubmitBtn").textContent = "Save changes";
+    document.getElementById("cancelEditBtn").style.display = "";
+    document.getElementById("expenseForm").scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+
+  function exitEditModeChrome(){
+    editingEntryId = null;
+    editingPrefill = null;
+    document.getElementById("expenseFormHeading").textContent = "Add expense";
+    document.getElementById("expenseSubmitBtn").textContent = "Add expense";
+    document.getElementById("cancelEditBtn").style.display = "none";
+  }
+
+  document.getElementById("cancelEditBtn").addEventListener("click", function(){
+    exitEditModeChrome();
+    document.getElementById("expDesc").value = "";
+    document.getElementById("expAmount").value = "";
+    document.getElementById("expDate").value = new Date().toISOString().slice(0,10);
+    currentSplitType = "equal";
+    updateSplitToggleUI();
+    renderSplitDetail();
+  });
+
+  document.getElementById("expenseForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    var date = document.getElementById("expDate").value;
+    var desc = document.getElementById("expDesc").value.trim();
+    var category = document.getElementById("expCategory").value;
+    var amount = Number(document.getElementById("expAmount").value);
+    var currency = document.getElementById("expCurrency").value;
+    var paidBy = document.getElementById("expPaidBy").value;
+
+    if(!date || !desc || !amount || amount <= 0 || !currency || !paidBy){
+      alert("Please fill in date, description, amount, currency and payer.");
+      return;
+    }
+
+    var payload = {
+      action: editingEntryId ? "update" : "add",
+      date: date, description: desc, category: category,
+      amount: amount, currency: currency, paidBy: paidBy
+    };
+    if(editingEntryId) payload.rowIndex = Number(editingEntryId.replace("row_",""));
+
+    if(currentSplitType === "equal"){
+      var checked = Array.prototype.slice.call(document.querySelectorAll(".split-with-cb"))
+        .filter(function(cb){ return cb.checked; })
+        .map(function(cb){ return cb.dataset.name; });
+      if(checked.length === 0){
+        alert("Select at least one traveler to split with.");
+        return;
+      }
+      payload.splitWith = checked.join(",");
+      payload.customSplit = "";
+    } else {
+      var splits = Array.prototype.slice.call(document.querySelectorAll(".split-custom-include-cb"))
+        .filter(function(cb){ return cb.checked; })
+        .map(function(cb){
+          var amt = document.querySelector(".split-custom-amt[data-name='" + cb.dataset.name.replace(/'/g,"\\'") + "']");
+          return { name: cb.dataset.name, amount: Number((amt && amt.value) || 0) };
+        });
+      if(splits.length === 0){
+        alert("Select at least one traveler to include in the split.");
+        return;
+      }
+      var sum = splits.reduce(function(a,s){ return a + s.amount; }, 0);
+      if(Math.abs(sum - amount) > 0.01){
+        alert("Custom split amounts (" + sum.toFixed(2) + ") must add up to the total (" + amount.toFixed(2) + ").");
+        return;
+      }
+      payload.customSplit = splits.map(function(s){ return s.name + ":" + s.amount; }).join(",");
+      payload.splitWith = "";
+    }
+
+    var submitBtn = document.getElementById("expenseSubmitBtn");
+    submitBtn.disabled = true;
+    setWriteStatus(editingEntryId ? "Saving changes…" : "Adding expense…", false);
+
+    postToSheet(payload).then(function(){
+      setWriteStatus("Saved ✓", false);
+      exitEditModeChrome();
+      document.getElementById("expDesc").value = "";
+      document.getElementById("expAmount").value = "";
+      currentSplitType = "equal";
+      updateSplitToggleUI();
+      renderSplitDetail();
+      submitBtn.disabled = false;
+      fetchSheetData();
+    }).catch(function(err){
+      setWriteStatus("Could not save: " + err.message, true);
+      submitBtn.disabled = false;
+    });
+  });
+
   // ---------- Table ----------
   function splitSummary(entry){
     if(entry.splitType === "equal" && entry.splitWith){
@@ -887,7 +1407,7 @@
     tbody.innerHTML = "";
     var sorted = state.entries.slice().sort(function(a,b){ return a.date < b.date ? 1 : (a.date > b.date ? -1 : 0); });
     if(sorted.length === 0){
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-note">No expenses logged yet. Add one in the shared spreadsheet above.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-note">No expenses logged yet. Add your first one above.</td></tr>';
       return;
     }
     sorted.forEach(function(entry){
@@ -899,8 +1419,32 @@
         "<td>" + fmt(entry.amount, entry.currency) + "</td>" +
         "<td>" + fmtBase(entry.baseAmount) + "</td>" +
         "<td>" + escapeHtml(entry.paidBy) + "</td>" +
-        "<td style='max-width:260px;font-size:0.78rem;color:var(--text-secondary);'>" + escapeHtml(splitSummary(entry)) + "</td>";
+        "<td style='max-width:220px;font-size:0.78rem;color:var(--text-secondary);'>" + escapeHtml(splitSummary(entry)) + "</td>" +
+        "<td class='row-actions'>" +
+          "<button data-action='edit' data-id='" + entry.id + "'>Edit</button>" +
+          "<button data-action='delete' data-id='" + entry.id + "'>Delete</button>" +
+        "</td>";
       tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll("[data-action='edit']").forEach(function(btn){
+      btn.addEventListener("click", function(){ beginEditEntry(btn.dataset.id); });
+    });
+    tbody.querySelectorAll("[data-action='delete']").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var id = btn.dataset.id;
+        if(!confirm("Delete this expense?")) return;
+        if(editingEntryId === id) exitEditModeChrome();
+        btn.closest("tr").style.opacity = "0.5";
+        postToSheet({ action:"delete", rowIndex: Number(id.replace("row_","")) }).then(function(){
+          state.entries = state.entries.filter(function(e){ return e.id !== id; });
+          renderAll();
+          fetchSheetData();
+        }).catch(function(err){
+          alert("Could not delete: " + err.message);
+          btn.closest("tr").style.opacity = "1";
+        });
+      });
     });
   }
 
@@ -923,24 +1467,33 @@
   // ---------- Render orchestration ----------
   function renderAll(){
     document.getElementById("tripTitleHeading").textContent = state.settings.tripTitle || "Trip Expenses";
+    fillSettingsForm();
     renderStatCards();
     renderBalances();
     renderDonutChart();
     renderBarChart();
     renderTable();
+    refreshCategorySelect();
+    refreshCurrencySelect();
+    refreshPaidBySelect();
   }
 
   function init(){
     document.getElementById("openSheetLink").href = CONFIG.sheetEditUrl || "#";
-    document.getElementById("editSettingsLink").href = CONFIG.sheetEditUrl ?
-      (CONFIG.sheetEditUrl + (CONFIG.sheetSettingsGid ? "#gid=" + CONFIG.sheetSettingsGid : "")) : "#";
+    document.getElementById("expDate").value = new Date().toISOString().slice(0,10);
+
+    localTravelers = loadLocalTravelers();
+    renderTravelerList();
 
     var cachedRates = loadRatesCache();
     if(cachedRates) state.rates = cachedRates;
 
     var cached = loadCache();
     if(cached){ state.entries = cached.entries; state.settings = cached.settings; }
+    fillSettingsForm();
+    updateSplitToggleUI();
     renderAll();
+    renderSplitDetail();
 
     fetchSheetData();
     refreshRates();
